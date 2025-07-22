@@ -5,7 +5,7 @@ float offset_temp = 0.0f, offset_pressao = 0.0f, offset_umidade = 0.0f;
 
 // Limites aceitáveis para temperatura, pressão e umidade
 float min_temp = -50.0f, max_temp = 50.0f;
-float min_pressao = 900.0f, max_pressao = 1100.0f;
+float min_pressao = 100.0f, max_pressao = 1100.0f;
 float min_umidade = 0.0f, max_umidade = 100.0f;
 
 // Função que extrai um valor float da URL para o offset, com base no tipo (temp, pressao, umidade)
@@ -274,11 +274,35 @@ static void start_http_server(void)
 #include "pico/bootrom.h"
 #define BOTAO_B 6
 
-// Handler para interrupção do GPIO associado ao botão B
 void gpio_irq_handler(uint gpio, uint32_t events)
 {
-    // Reinicia o dispositivo para modo boot USB (bootrom) ao pressionar botão B
-    reset_usb_boot(0, 0);
+    absolute_time_t now = get_absolute_time();
+
+    if (gpio == BOTAO_A)
+    {
+        // Verifica debounce para botão A
+        if (absolute_time_diff_us(last_interrupt_time_botao_a, now) > DEBOUNCE_MS * 1000)
+        {
+            last_interrupt_time_botao_a = now;
+            // Offsets de calibração para temperatura, pressão e umidade
+            offset_temp = 0.0f, offset_pressao = 0.0f, offset_umidade = 0.0f;
+
+            // Limites aceitáveis para temperatura, pressão e umidade
+            min_temp = -50.0f, max_temp = 50.0f;
+            min_pressao = 100.0f, max_pressao = 1100.0f;
+            min_umidade = 0.0f, max_umidade = 100.0f;
+        }
+    }
+    else if (gpio == BOTAO_B)
+    {
+        // Verifica debounce para botão B
+        if (absolute_time_diff_us(last_interrupt_time_botao_b, now) > DEBOUNCE_MS * 1000)
+        {
+            last_interrupt_time_botao_b = now;
+            // Exemplo: reiniciar em modo boot USB ao apertar botão B
+            reset_usb_boot(0, 0);
+        }
+    }
 }
 
 // Configura o PIO para uso com matriz de LEDs 5x5
@@ -478,10 +502,17 @@ void inicializar_leds()
 // Inicializa o botão BOTAO_B como entrada com pull-up e configura interrupção na borda de descida
 void inicializar_botoes()
 {
+    // Configura botão B
     gpio_init(BOTAO_B);
     gpio_set_dir(BOTAO_B, GPIO_IN);
     gpio_pull_up(BOTAO_B);
     gpio_set_irq_enabled_with_callback(BOTAO_B, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
+
+    // Configura botão A
+    gpio_init(BOTAO_A);
+    gpio_set_dir(BOTAO_A, GPIO_IN);
+    gpio_pull_up(BOTAO_A);
+    gpio_set_irq_enabled(BOTAO_A, GPIO_IRQ_EDGE_FALL, true);
 }
 
 // Inicializa o barramento I2C com frequência de 400kHz e configura os pinos SDA e SCL

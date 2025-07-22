@@ -37,7 +37,7 @@
 // ============================================================================
 // === Definições de pinos e periféricos ===
 #define LED_PIN 12 // LED de status
-#define BOTAO_A 5  // Botão A (não utilizado neste trecho)
+#define BOTAO_A 5  // Botão A
 #define MATRIZ_PIN 7
 #define NUM_PIXELS 25
 #define BRILHO_PADRAO 50
@@ -47,6 +47,9 @@
 #define LED_RED_PIN 13
 
 #define BUZZER_PIN 10
+
+// Tempo mínimo entre interrupções válidas (debounce), em milissegundos
+#define DEBOUNCE_MS 200
 
 // === I2C para sensores ===
 #define I2C_PORT i2c0
@@ -81,6 +84,10 @@ int sm;         // Máquina de estado PIO
 uint slice_num; // Canal PWM usado
 
 char ip_str[24]; // IP da rede em formato string
+
+// Variáveis para armazenar o último tempo da interrupção para debounce
+static absolute_time_t last_interrupt_time_botao_a = {0};
+static absolute_time_t last_interrupt_time_botao_b = {0};
 
 // ============================================================================
 // === Protótipos de funções utilitárias ===
