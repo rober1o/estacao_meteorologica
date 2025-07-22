@@ -449,8 +449,8 @@ void monitorar_alertas()
             // Vários alertas: apenas tocar buzzer, sem LED
             tocar_pwm_buzzer(500, -1);
 
-            // Acende matriz LED com figura de "luz quarto"
-            desenha_fig(luz_quarto, BRILHO_PADRAO, pio, sm);
+            // Acende matriz LED com um quadrado amarelo
+            desenha_fig(alerta_matriz, BRILHO_PADRAO, pio, sm);
             sleep_ms(500);
 
             // Apaga matriz LED
